@@ -1,0 +1,64 @@
+svg {
+  font: 10px sans-serif;
+}
+
+.gap {
+   fill: #fff;
+   clip-path: url(#clip);
+   opacity: 1;
+}
+
+.area00 {
+   fill: none;
+   stroke: steelblue;
+   stroke-width: .25%;
+   clip-path: url(#clip);
+   opacity: .75;
+   }
+
+.area01 {
+   fill: none;
+   stroke: orange;
+   stroke-width: .25%;
+   clip-path: url(#clip);
+   opacity: .75;
+   }
+
+.area00:hover {
+   opacity: 1;
+}
+
+.area01:hover {
+   opacity: 1;
+}
+
+.area10 {
+   fill: none;
+   stroke: black;
+   stroke-width: .25%;
+   clip-path: url(#clip);
+   opacity: .75;
+   }
+
+.area11 {
+   fill:none;
+   stroke: black;
+   stroke-width: .25%;
+   clip-path: url(#clip);
+   opacity: .75;
+   }
+
+.axis path,
+.axis line {
+   position:relative;
+   fill: none;
+   stroke: #000;
+   stroke-width: .25%;
+   shape-rendering: crispEdges;
+}
+
+.brush .extent {
+  stroke: #fff;
+  fill-opacity: .125;
+  shape-rendering: crispEdges;
+}

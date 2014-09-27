@@ -4,6 +4,7 @@
 <head>
    <link rel="stylesheet" type="text/css" href="css/foundation.min.css">
    <link rel="stylesheet" type="text/css" href="css/normalize.css">
+   <link rel="stylesheet" type="text/css" href="css/plot.css">
    <script src="js/vendor/modernizr.js"></script>
    <script src="js/names.js"></script>
 </head>
@@ -47,10 +48,10 @@
          </ul>
       </li>
       <li class="has-form">
-         <input id="start" type="number" placeholder="Start Date (MJD)"></input>
+         <input id="start" type="number" class="date" placeholder="Start Date (MJD)"></input>
       </li>
       <li class="has-form">
-         <input id="end" type="number" placeholder="End Date (MJD)"></input>
+         <input id="end" type="number" class="date" placeholder="End Date (MJD)"></input>
       </li>
     </ul>
 
@@ -61,11 +62,15 @@
   </section>
 </nav>
  
+<div id="pltcont" style="width:100%; height:80%; clear:both;"></div>
 </body>
 <script src="js/vendor/jquery.js"></script>
 <script src="js/foundation/foundation.js"></script>
 <script src="js/foundation/foundation.topbar.js"></script>
-
+<script src="js/d3.min.js"></script>
+<script src='js/sql.js'></script>
+<script src="js/plotter.js"></script>
+<script src="js/fetcher.js"></script>
 <script>
    $(document).foundation()
 
@@ -91,17 +96,37 @@
    }
    
    // Initialize start & end dates in number boxes to last 24 hrs
-   var end = Math.floor(100*get_mjd(new Date()))/100;
-   $("#start").val(end-1);
-   $("#end").val(end);
+   var today = Math.floor(100*get_mjd(new Date()))/100;
+   today = 56812.89; // Delete this line before using live data
+   $("#start").val(today-1);
+   $("#end").val(today);
    
-
    // Populate source list & associative array
    var ascarr = {};
    sources.results.forEach(function(item) {
-        ascarr[item.name] = item.id;
+      ascarr[item.name] = item.id;
    });
+   // TEST PLOT
+   // Define some convenient functions
+   var mjd = function(d) { return d.mjd; };
+   var on = function(d) { return d.on; };
+   var off = function(d) { return d.off; };
+   var exc = function(d) { return d.exc; };
+   var rat = function(d) { return d.rat; };
+   var cum = function(d) { return d.ce; };
    
+   var plot = add_plot("pltcont");
+   var init_plot = function() {
+      // Initialize data & interpolations for Crab
+      var data = fetch(ascarr["Crab"], $("#start").val(), $("#end").val());
+      var foc = [{fx:mjd, fy:on, class:"area00", data:data}];
+      foc.push({fx:mjd, fy:off, class:"area10", data:data});
+      var con = [{fx:mjd, fy:off, class:"area00", data:data}];
+      plot(foc, con, []);
+   }
+   // Set to run when the database is loaded
+   set_loaded(init_plot);
+   //END TEST PLOT
    // Returns an array of suggestions from list based on txt
    function suggest(txt, list, n) {
       txt = txt.trim();
@@ -128,7 +153,7 @@
       
       return arr; 
    }
-   
+
    // All functions requiring jquery go in here
    (function($) {
       // Pltyp Button's click handler
@@ -145,16 +170,17 @@
          // Return false so link isn't followed
          return false;
       });
-
+      
       // Fetch Button's click handler
       $('#ftchbtn').on('click', function(e) {
+         has_data = true;
          var bxls = $(document).find('.sugbox');
          for (var i = 0; i < bxls.length; i++) {
             var bx = $(bxls[i]);
             // Gets first match from source list
             var name = suggest(bx.val(), Object.keys(ascarr), 1)[0];
             // No source matches, so clear text box of nonsense
-            if (name == "No Results"){
+            if (name == "No Results") {
                bx.val("");
                continue;
             }
@@ -168,6 +194,7 @@
 
       // Suggestion box input change handler
       $('.sugbox').on('input', function(e) {
+         has_data = false;
          // Get DOM elements
          var par = $(this).parent().parent();
          var ul = par.find("ul");
@@ -183,6 +210,7 @@
             
          // Suggestion link click handler
          $('.suglnk').on('click', function(e) {
+            has_data = true;
             // Get DOM elt's
             var par = $(this).parent().parent().parent();
             var inp = par.find("input");
@@ -200,4 +228,5 @@
          });
       });
    }(jQuery));
+
 </script>
