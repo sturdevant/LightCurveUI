@@ -86,13 +86,6 @@ function add_plot(eltid) {
       height = ey - margin.top - margin.bottom;
       height2 = ey - margin2.top - margin2.bottom;
        
-      // Clip paths so they don't go outside of width & height
-      svg.append("defs").append("clipPath")
-         .attr("id", "clip")
-         .append("rect")
-         .attr("width", width)
-         .attr("height", height);
-      
       // Set width & height of svg, retranslate focus & context
       svg.attr("width", width + margin.left + margin.right)
          .attr("height", height + margin.top + margin.bottom);
@@ -100,6 +93,7 @@ function add_plot(eltid) {
       context.attr("transform", "translate(" + margin2.left + "," + margin2.top + ")");
       
       set_axes();
+
       // Redraw graphs to new dimensions
       for (var i = 0; i < foc.length; i++){
          foc[i].i.y0(height);
@@ -109,6 +103,13 @@ function add_plot(eltid) {
          con[i].i.y0(height2);
          con[i].p.attr("d", con[i].i);
       }
+
+      // Clip paths so they don't go outside of width & height
+      svg.append("defs").append("clipPath")
+         .attr("id", "clip")
+         .append("rect")
+         .attr("width", width)
+         .attr("height", height);
    }
    // Call on resize & make sure dimensions are initialized before plotting!
    window.onresize = updateWindow;
@@ -159,6 +160,7 @@ function add_plot(eltid) {
       // Cool effect to bring hovered el't to front
       d3.select(this).moveToFront();
       d3.selectAll(".gap").moveToFront();
+      d3.select(".x.brush").moveToFront();
       d3.selectAll(".axis").moveToFront();
    }
    var none = function() {}
@@ -195,11 +197,23 @@ function add_plot(eltid) {
             fx:f[i].fx, fy:f[i].fy, type:"basis", class:f[i].class, 
             data:f[i].data}));
       }
+      // Again for context
       for (var i = 0; i < c.length; i++) {
-         con.push(plot( {c:context, x:x2, y:y2, height:height2, hover:none,
+         con.push(plot( {c:context, x:x2, y:y2, height:height2, hover:hover,
             fx:c[i].fx, fy:c[i].fy, type:"basis", class:c[i].class, 
             data:c[i].data}));
       }
+
+      // Set gap plots
+      foc.push(plot({c:focus, x:x, y:y, height:height, hover:none, fx:g.fx,
+         fy:g.fy, type:"step-before", class:"gap", data:g.data}));
+      
+      con.push(plot({c:context, x:x2, y:y2, height:height2, hover:none,
+         fx:g.fx, fy:g.fy, type:"step-before", class:"gap", data:g.data}));
+
+      // Make sure brush & axes go in front of gaps!
+      d3.select(".x.brush").moveToFront();
+      d3.selectAll(".axis").moveToFront();
    }
    return set_plots;
 }

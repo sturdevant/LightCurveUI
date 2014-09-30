@@ -25,15 +25,15 @@
       <li class="has-dropdown">
         <a onclick="return false;" href="#">Plot Type</a>
         <ul class="dropdown">
-          <li class="active"><a id="sep" class="pltyp" href="#">Separate</a></li>
-          <li><a id="rat" class="pltyp" href="#">Ratio</a></li>
-          <li><a id="exc" class="pltyp" href="#">Excess</a></li>
-          <li><a id="cum" class="pltyp" href="#">Cumulative Excess</a></li>
+          <li class="active"><a id="sep" class="pltyp" onclick="return false;" href="#">Separate</a></li>
+          <li><a id="rat" class="pltyp" onclick="return false;" href="#">Ratio</a></li>
+          <li><a id="exc" class="pltyp" onclick="return false;" href="#">Excess</a></li>
+          <li><a id="cum" class="pltyp" onclick="return false;" href="#">Cumulative Excess</a></li>
         </ul>
       </li>
       <li class="has-dropdown">
          <a onclick="return false;" class="has-form">
-            <input class="sugbox" type="text" placeholder="Source 1"></input>
+            <input id="s1" class="sugbox" type="text" placeholder="Source 1"></input>
          </a>
          <ul class="dropdown">
             <li><a onclick="return false;" href="#">No Results</a></li>
@@ -41,7 +41,7 @@
       </li>
       <li class="has-dropdown">
          <a onclick="return false;" class="has-form">
-            <input class="sugbox" type="text" placeholder="Source 2"></input>
+            <input id="s2" class="sugbox" type="text" placeholder="Source 2"></input>
          </a>
          <ul class="dropdown">
             <li><a onclick="return false;" href="#">No Results</a></li>
@@ -57,7 +57,7 @@
 
     <!-- Right Nav Section -->
     <ul class="right">
-      <li class="active"><a id="ftchbtn" href="#">Fetch</a></li>
+      <li class="active"><a id="ftchbtn" onclick="return false;" href="#">Fetch</a></li>
     </ul>
   </section>
 </nav>
@@ -95,39 +95,13 @@
       return jd - 2400000.5; // want mjd, not jd
    }
    
-   // Initialize start & end dates in number boxes to last 24 hrs
-   var today = Math.floor(100*get_mjd(new Date()))/100;
-   today = 56812.89; // Delete this line before using live data
-   $("#start").val(today-1);
-   $("#end").val(today);
-   
    // Populate source list & associative array
    var ascarr = {};
    sources.results.forEach(function(item) {
       ascarr[item.name] = item.id;
    });
-   // TEST PLOT
-   // Define some convenient functions
-   var mjd = function(d) { return d.mjd; };
-   var on = function(d) { return d.on; };
-   var off = function(d) { return d.off; };
-   var exc = function(d) { return d.exc; };
-   var rat = function(d) { return d.rat; };
-   var cum = function(d) { return d.ce; };
-   
-   var plot = add_plot("pltcont");
-   var init_plot = function() {
-      // Initialize data & interpolations for Crab
-      var data = fetch(ascarr["Crab"], $("#start").val(), $("#end").val());
-      var foc = [{fx:mjd, fy:on, class:"area00", data:data}];
-      foc.push({fx:mjd, fy:off, class:"area10", data:data});
-      var con = [{fx:mjd, fy:off, class:"area00", data:data}];
-      plot(foc, con, []);
-   }
-   // Set to run when the database is loaded
-   set_loaded(init_plot);
-   //END TEST PLOT
-   // Returns an array of suggestions from list based on txt
+
+  // Returns an array of suggestions from list based on txt
    function suggest(txt, list, n) {
       txt = txt.trim();
       // No input text
@@ -154,79 +128,174 @@
       return arr; 
    }
 
+   // Initialize start & end dates in number boxes to last 24 hrs
+   var today = Math.floor(100*get_mjd(new Date()))/100;
+   today = 56812.89; // Delete this line before using live data
+   $("#start").val(today-1);
+   $("#end").val(today);
+   $("#s1").val("Crab");
+
    // All functions requiring jquery go in here
    (function($) {
-      // Pltyp Button's click handler
-      $('.pltyp').on('click', function(e) {
-         // Get DOM el'ts
-         var par = $(this).parent();
-         var gp = par.parent();
-         var act = gp.find(".active");
-         
-         act.attr("class", "");
-         par.attr("class","active");
-         
-         console.log($(this).attr('id'));
-         // Return false so link isn't followed
-         return false;
-      });
-      
-      // Fetch Button's click handler
-      $('#ftchbtn').on('click', function(e) {
-         has_data = true;
-         var bxls = $(document).find('.sugbox');
-         for (var i = 0; i < bxls.length; i++) {
-            var bx = $(bxls[i]);
-            // Gets first match from source list
-            var name = suggest(bx.val(), Object.keys(ascarr), 1)[0];
-            // No source matches, so clear text box of nonsense
-            if (name == "No Results") {
-               bx.val("");
-               continue;
-            }
-            
-            // Explicitly set text box value to proper name
-            bx.val(name);
-         }
-         // Return false so link isn't followed
-         return false;
-      });
+      // Define some convenient functions
+      var mjd = function(d) { return d.mjd; };
+      var on = function(d) { return d.on; };
+      var off = function(d) { return d.off; };
+      var exc = function(d) { return d.exc; };
+      var rat = function(d) { return d.rat; };
+      var cum = function(d) { return d.ce; };
+      var gap = function(d) { return d.gap; };
+      // Data arrays
+      var data = [null, null];
+      var plot = add_plot("pltcont");
+      // Will want form elt's event listeners to wait for db to be loaded
+      var init_plot = function() {
+         // Initialize data & interpolations for Crab
+         data[0] = fetch(ascarr["Crab"], today-1, today);
+         var foc = [];
+         var con = [];
+         foc.push({fx:mjd, fy:on, class:"area00", data:data[0]});
+         foc.push({fx:mjd, fy:off, class:"area10", data:data[0]});
+         con.push({fx:mjd, fy:off, class:"area00", data:data[0]});
+         var gaps = {fx:mjd, fy:gap, data:data[0]};
+         plot(foc, con, gaps);
 
-      // Suggestion box input change handler
-      $('.sugbox').on('input', function(e) {
-         has_data = false;
-         // Get DOM elements
-         var par = $(this).parent().parent();
-         var ul = par.find("ul");
-         var txt = $(this).val();
-         
-         // Clear current list
-         ul.children().remove();
-         
-         // Display 8 suggested source names based on input text
-         var arr = suggest(txt, Object.keys(ascarr), 8);
-         for (var i = 0; i < arr.length; i++)
-            ul.append('<li><a href="#" class="suglnk">'+arr[i]+'</a></li>');
+         // Pltyp Button's general click handler
+         $('.pltyp').on('click', function(e) {
+            // Get DOM el'ts
+            var par = $(this).parent();
+            var gp = par.parent();
+            var act = gp.find(".active");
             
-         // Suggestion link click handler
-         $('.suglnk').on('click', function(e) {
-            has_data = true;
-            // Get DOM elt's
-            var par = $(this).parent().parent().parent();
-            var inp = par.find("input");
-            var txt = $(this).text();
-            
-            // Check that we have an actual source
-            if (txt == "No Results")
-               return false;
-            
-            // Replace text box's value with link's text
-            inp.val(txt);
-            
-            // Return false, so link isn't followed
-            return false;
+            act.attr("class", "");
+            par.attr("class","active");
          });
-      });
+         
+         $('#sep').on('click', function(e) {
+            if (data[0] == null && data[1] == null)
+               return false;
+            var foc = [];
+            var con = [];
+            var gaps = {};
+
+            for (var i = 0; i < data.length; i++) {
+               if (data[i] == null)
+                  continue;
+               foc.push({fx:mjd, fy:on, class:"area0"+i, data:data[i]});
+               foc.push({fx:mjd, fy:off, class:"area00", data:data[i]});
+               con.push({fx:mjd, fy:off, class:"area0"+i, data:data[i]});
+               gaps = {fx:mjd, fy:gap, data:data[i]};
+            }
+            plot(foc, con, gaps);
+         });
+
+         $('#rat').on('click', function(e) {
+            if (data[0] == null && data[1] == null)
+               return false;
+            var foc = [];
+            var con = [];
+            var gaps = {};
+
+            for (var i = 0; i < data.length; i++) {
+               if (data[i] == null)
+                  continue;
+               foc.push({fx:mjd, fy:rat, class:"area0"+i, data:data[i]});
+               con.push({fx:mjd, fy:rat, class:"area0"+i, data:data[i]});
+               gaps = {fx:mjd, fy:gap, data:data[i]};
+            }
+            plot(foc, con, gaps);
+         });
+
+         $('#exc').on('click', function(e) {
+            if (data[0] == null && data[1] == null)
+               return false;
+            var foc = [];
+            var con = [];
+            var gaps = {};
+
+            for (var i = 0; i < data.length; i++) {
+               if (data[i] == null)
+                  continue;
+               foc.push({fx:mjd, fy:exc, class:"area0"+i, data:data[i]});
+               con.push({fx:mjd, fy:exc, class:"area0"+i, data:data[i]});
+               gaps = {fx:mjd, fy:gap, data:data[i]};
+            }
+            plot(foc, con, gaps);
+         });
+
+         $('#cum').on('click', function(e) {
+            if (data[0] == null && data[1] == null)
+               return false;
+            var foc = [];
+            var con = [];
+            var gaps = {};
+
+            for (var i = 0; i < data.length; i++) {
+               if (data[i] == null)
+                  continue;
+               foc.push({fx:mjd, fy:cum, class:"area0"+i, data:data[i]});
+               con.push({fx:mjd, fy:cum, class:"area0"+i, data:data[i]});
+               gaps = {fx:mjd, fy:gap, data:data[i]};
+            }
+            plot(foc, con, gaps);
+         });
+         // Fetch Button's click handler
+         $('#ftchbtn').on('click', function(e) {
+            foc = [];
+            con = [];
+
+            var bxls = $(document).find('.sugbox');
+            for (var i = 0; i < bxls.length; i++) {
+               var bx = $(bxls[i]);
+               // Gets first match from source list
+               var name = suggest(bx.val(), Object.keys(ascarr), 1)[0];
+               // No source matches, so clear text box of nonsense
+               if (name == "No Results") {
+                  bx.val("");
+                  continue;
+               }
+               
+               // Explicitly set text box value to proper name
+               bx.val(name);
+               set_type();
+            }
+         });
+
+         // Suggestion box input change handler
+         $('.sugbox').on('input', function(e) {
+            // Get DOM elements
+            var par = $(this).parent().parent();
+            var ul = par.find("ul");
+            var txt = $(this).val();
+            
+            // Clear current list
+            ul.children().remove();
+            
+            // Display 8 suggested source names based on input text
+            var arr = suggest(txt, Object.keys(ascarr), 8);
+            for (var i = 0; i < arr.length; i++)
+               ul.append('<li><a href="#" class="suglnk">'+arr[i]+'</a></li>');
+               
+            // Suggestion link click handler
+            $('.suglnk').on('click', function(e) {
+               // Get DOM elt's
+               var par = $(this).parent().parent().parent();
+               var inp = par.find("input");
+               var txt = $(this).text();
+               
+               // Check that we have an actual source
+               if (txt == "No Results")
+                  return false;
+               
+               // Replace text box's value with link's text
+               inp.val(txt);
+            });
+         });
+      }
+      // Set to run when the database is loaded
+      set_loaded(init_plot);
    }(jQuery));
+
+   
 
 </script>

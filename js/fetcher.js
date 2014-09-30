@@ -59,7 +59,7 @@ function fetch(name, start, end) {
    var z = 0;
    // array to keep track of prev/current/next value was a gap
    var g = [false, false, false];
-   var cd = 0;
+   var ce = 0;
    
    for (var i = 0; i < l; i += days) {
       // Average mjd of range
@@ -95,15 +95,15 @@ function fetch(name, start, end) {
       }
       
       var exc = on - off;
-      ce += diff;
+      ce += exc;
       var rat = off == 0 ? 0 : on/off;
       dta.push({mjd: mjd,
          on: on/days,
          off: off/days,
-         exc: diff/days,
+         exc: exc/days,
          ce: ce,
          rat: rat,
-         gap: gap});// do gap*(max(on, off, diff, rat, cd)+1)?
+         gap: gap});// do gap*(max(on, off, exc, rat, ce)+1)?
    }
    
    return dta;
