@@ -24,6 +24,12 @@ function find_gap(arr) {
    return gaps;
 }   
 
+function isin(val, arr) {
+   for (var i = 0; i < arr.length; i++)
+      if (arr[i] == val)
+         return true;
+   return false;
+}
 // Given a database file & name of source, returns MJD, on & off data
 function fetch(name, start, end) {
    // Make sure db is already loaded
@@ -39,7 +45,7 @@ function fetch(name, start, end) {
    
    // Detect gaps in data
    var gaps = find_gap(mjd_tbl.values);
-   console.log(gaps);
+   
    // Make sure we have arrays of equal length (chop off last elt's)
    var lMjd = mjd_tbl.values.length;
    var lOn = on_tbl.values.length;
@@ -73,21 +79,9 @@ function fetch(name, start, end) {
       for (var j = i; j < days + i; j++) {
          on += +on_tbl.values[j];
          off += +off_tbl.values[j];
-
-         if (j + days == 2584 || j + days == 2585) {
-            console.log("gn should be true");
-            console.log(gaps.indexOf(j+days));
-         }
          // Check if next point will have a gap
-         if(true) {
-            console.log(gaps);
-            console.log(j+days);
-            console.log(gaps.indexOf(j+days));
-            if (gaps.indexOf(j+days) > -1){
-               gn = true;
-               console.log("gn is true");
-            }
-         }
+         if (isin(j+days, gaps))
+            gn = true;
       }
       
       // If prev, curr or next are gaps, don't display this point
