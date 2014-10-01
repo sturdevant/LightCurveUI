@@ -24,7 +24,7 @@
     <ul class="left">
       <li class="has-dropdown">
         <a onclick="return false;" href="#">Plot Type</a>
-        <ul class="dropdown">
+        <ul id="typ" class="dropdown">
           <li class="active"><a id="sep" class="pltyp" onclick="return false;" href="#">Separate</a></li>
           <li><a id="rat" class="pltyp" onclick="return false;" href="#">Ratio</a></li>
           <li><a id="exc" class="pltyp" onclick="return false;" href="#">Excess</a></li>
@@ -157,8 +157,8 @@
          foc.push({fx:mjd, fy:on, class:"area00", data:data[0]});
          foc.push({fx:mjd, fy:off, class:"area10", data:data[0]});
          con.push({fx:mjd, fy:off, class:"area00", data:data[0]});
-         var gaps = {fx:mjd, fy:gap, data:data[0]};
-         plot(foc, con, gaps);
+//         var gaps = {fx:mjd, fy:gap, data:data[0]};
+         plot(foc, con, {fx:mjd, fy:gap, data:data[0]});
 
          // Pltyp Button's general click handler
          $('.pltyp').on('click', function(e) {
@@ -176,17 +176,14 @@
                return false;
             var foc = [];
             var con = [];
-            var gaps = {};
-
             for (var i = 0; i < data.length; i++) {
                if (data[i] == null)
                   continue;
                foc.push({fx:mjd, fy:on, class:"area0"+i, data:data[i]});
-               foc.push({fx:mjd, fy:off, class:"area00", data:data[i]});
+               foc.push({fx:mjd, fy:off, class:"area10", data:data[i]});
                con.push({fx:mjd, fy:off, class:"area0"+i, data:data[i]});
-               gaps = {fx:mjd, fy:gap, data:data[i]};
             }
-            plot(foc, con, gaps);
+            plot(foc, con, {fx:mjd, fy:gap, data:data[1]});
          });
 
          $('#rat').on('click', function(e) {
@@ -239,12 +236,14 @@
             }
             plot(foc, con, gaps);
          });
+
          // Fetch Button's click handler
          $('#ftchbtn').on('click', function(e) {
-            foc = [];
-            con = [];
-
             var bxls = $(document).find('.sugbox');
+            var st = $("#start").val();
+            var en = $("#end").val();
+            var act = $("#typ").find(".active").children();
+
             for (var i = 0; i < bxls.length; i++) {
                var bx = $(bxls[i]);
                // Gets first match from source list
@@ -252,13 +251,16 @@
                // No source matches, so clear text box of nonsense
                if (name == "No Results") {
                   bx.val("");
+                  data[i] = null;
                   continue;
                }
                
                // Explicitly set text box value to proper name
                bx.val(name);
-               set_type();
+               data[i] = fetch(ascarr[name], st, en);
             }
+
+            act.trigger("click");
          });
 
          // Suggestion box input change handler

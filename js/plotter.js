@@ -15,10 +15,9 @@ function add_plot(eltid) {
    var xAxis2 = d3.svg.axis().orient("bottom");
    var yAxis = d3.svg.axis().orient("left");
 
-   // Arrays of interpolations for focus, context & gap, along with selectors
+   // Arrays of interpolations for focus & context, along with selectors
    var foc = [];
    var con = [];
-   var gap = [];
    
    // Set brush
    var brushed = function() {
@@ -103,8 +102,8 @@ function add_plot(eltid) {
          con[i].i.y0(height2);
          con[i].p.attr("d", con[i].i);
       }
-
       // Clip paths so they don't go outside of width & height
+      svg.selectAll("defs").remove();
       svg.append("defs").append("clipPath")
          .attr("id", "clip")
          .append("rect")
@@ -199,7 +198,7 @@ function add_plot(eltid) {
       }
       // Again for context
       for (var i = 0; i < c.length; i++) {
-         con.push(plot( {c:context, x:x2, y:y2, height:height2, hover:hover,
+         con.push(plot( {c:context, x:x2, y:y2, height:height2, hover:none,
             fx:c[i].fx, fy:c[i].fy, type:"basis", class:c[i].class, 
             data:c[i].data}));
       }
@@ -210,8 +209,10 @@ function add_plot(eltid) {
       
       con.push(plot({c:context, x:x2, y:y2, height:height2, hover:none,
          fx:g.fx, fy:g.fy, type:"step-before", class:"gap", data:g.data}));
+      console.log(g.data);
 
       // Make sure brush & axes go in front of gaps!
+      d3.select(".gap").moveToFront();
       d3.select(".x.brush").moveToFront();
       d3.selectAll(".axis").moveToFront();
    }

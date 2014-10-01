@@ -26,7 +26,6 @@ function find_gap(arr) {
 
 // Given a database file & name of source, returns MJD, on & off data
 function fetch(name, start, end) {
-   console.log("was called");
    // Make sure db is already loaded
    if (typeof db === 'undefined') {
       return;
@@ -40,7 +39,7 @@ function fetch(name, start, end) {
    
    // Detect gaps in data
    var gaps = find_gap(mjd_tbl.values);
-   
+   console.log(gaps);
    // Make sure we have arrays of equal length (chop off last elt's)
    var lMjd = mjd_tbl.values.length;
    var lOn = on_tbl.values.length;
@@ -67,23 +66,35 @@ function fetch(name, start, end) {
       var on = 0;
       var off = 0;
       var gn = false;
-      var gap = -1000000;// Set to -1 & see idea below
+      var gap = -1000000;
       
       // Average values to reduce # of data points, 
       // slightly reduces resolution, but vastly improves performance!
       for (var j = i; j < days + i; j++) {
          on += +on_tbl.values[j];
          off += +off_tbl.values[j];
+
+         if (j + days == 2584 || j + days == 2585) {
+            console.log("gn should be true");
+            console.log(gaps.indexOf(j+days));
+         }
          // Check if next point will have a gap
-         if (gaps.indexOf(j+days) != -1)
-            gn = true;
+         if(true) {
+            console.log(gaps);
+            console.log(j+days);
+            console.log(gaps.indexOf(j+days));
+            if (gaps.indexOf(j+days) > -1){
+               gn = true;
+               console.log("gn is true");
+            }
+         }
       }
       
       // If prev, curr or next are gaps, don't display this point
       g.shift();
       g.push(gn);
       if (g[0] || g[1] || g[2])
-         gap = 1000000;// Set to 1 & see idea below
+         gap = 1000000;
       
       // Either increment if this is zero or reset zero counter
       on == 0 && off == 0 ? z++ : z = 0;
@@ -103,7 +114,7 @@ function fetch(name, start, end) {
          exc: exc/days,
          ce: ce,
          rat: rat,
-         gap: gap});// do gap*(max(on, off, exc, rat, ce)+1)?
+         gap: gap});
    }
    
    return dta;
