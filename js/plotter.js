@@ -209,12 +209,12 @@ function add_plot(eltid) {
       
       con.push(plot({c:context, x:x2, y:y2, height:height2, hover:none,
          fx:g.fx, fy:g.fy, type:"step-before", class:"gap", data:g.data}));
-      console.log(g.data);
 
       // Make sure brush & axes go in front of gaps!
       d3.select(".gap").moveToFront();
       d3.select(".x.brush").moveToFront();
       d3.selectAll(".axis").moveToFront();
+      brushed();
    }
    return set_plots;
 }

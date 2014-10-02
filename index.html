@@ -182,8 +182,9 @@
                foc.push({fx:mjd, fy:on, class:"area0"+i, data:data[i]});
                foc.push({fx:mjd, fy:off, class:"area10", data:data[i]});
                con.push({fx:mjd, fy:off, class:"area0"+i, data:data[i]});
+               gaps = {fx:mjd, fy:gap, data:data[i]};
             }
-            plot(foc, con, {fx:mjd, fy:gap, data:data[1]});
+            plot(foc, con, gaps);
          });
 
          $('#rat').on('click', function(e) {
@@ -276,7 +277,7 @@
             // Display 8 suggested source names based on input text
             var arr = suggest(txt, Object.keys(ascarr), 8);
             for (var i = 0; i < arr.length; i++)
-               ul.append('<li><a href="#" class="suglnk">'+arr[i]+'</a></li>');
+               ul.append('<li><a onclick="return false;" href="#" class="suglnk">'+arr[i]+'</a></li>');
                
             // Suggestion link click handler
             $('.suglnk').on('click', function(e) {
@@ -291,6 +292,7 @@
                
                // Replace text box's value with link's text
                inp.val(txt);
+               $("#ftchbtn").trigger("click");
             });
          });
       }
