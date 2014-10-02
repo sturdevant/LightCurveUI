@@ -91,7 +91,7 @@ function fetch(name, start, end) {
          gap = 1000000;
       
       // Either increment if this is zero or reset zero counter
-      on == 0 && off == 0 ? z++ : z = 0;
+      on == 0 && off == 0 && gap < 0 ? z++ : z = 0;
       // Every eleven zeros, remove the middle (so that we have a padding of 5
       // zero points, makes the interpolation look nicer than no padding!)
       if (z == 11) {

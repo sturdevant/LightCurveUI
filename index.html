@@ -150,16 +150,6 @@
       var plot = add_plot("pltcont");
       // Will want form elt's event listeners to wait for db to be loaded
       var init_plot = function() {
-         // Initialize data & interpolations for Crab
-         data[0] = fetch(ascarr["Crab"], today-1, today);
-         var foc = [];
-         var con = [];
-         foc.push({fx:mjd, fy:on, class:"area00", data:data[0]});
-         foc.push({fx:mjd, fy:off, class:"area10", data:data[0]});
-         con.push({fx:mjd, fy:off, class:"area00", data:data[0]});
-//         var gaps = {fx:mjd, fy:gap, data:data[0]};
-         plot(foc, con, {fx:mjd, fy:gap, data:data[0]});
-
          // Pltyp Button's general click handler
          $('.pltyp').on('click', function(e) {
             // Get DOM el'ts
@@ -295,6 +285,8 @@
                $("#ftchbtn").trigger("click");
             });
          });
+         $('.sugbox').trigger('input');
+         $('#ftchbtn').trigger('click');
       }
       // Set to run when the database is loaded
       set_loaded(init_plot);
